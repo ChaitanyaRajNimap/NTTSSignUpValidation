@@ -13,36 +13,26 @@ import {
 import CustomBtn from '../components/CustomBtn';
 import validation from '../components/Validation';
 
-function SignUp({navigation}) {
+const SignIn = ({navigation}) => {
   const [inputs, setInputs] = useState({
-    name: null,
     email: null,
     passowrd: null,
   });
   const [error, setError] = useState({
-    nameError: null,
     emailError: null,
     passwordError: null,
   });
 
-  const nameRef = createRef();
   const emailRef = createRef();
   const passwordRef = createRef();
 
-  const handleSignup = () => {
-    let name = error.nameError === '' ? true : false;
+  const handleSignin = () => {
     let email = error.emailError === '' ? true : false;
     let password = error.passwordError === '' ? true : false;
 
-    if (name && email && password) {
-      navigation.navigate('SignIn');
+    if (email && password) {
+      alert('Logged In successfully!');
     } else {
-      setError(prevErr => {
-        return {
-          ...prevErr,
-          nameError: 'This Feild is Requied.',
-        };
-      });
       setError(prevErr => {
         return {
           ...prevErr,
@@ -62,39 +52,8 @@ function SignUp({navigation}) {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView keyboardShouldPersistTaps="handled" style={{flex: 1}}>
         <View style={styles.conatiner}>
-          <Text style={styles.title}>Sign Up</Text>
+          <Text style={styles.title}>Sign In</Text>
           <KeyboardAvoidingView enabled style={styles.form}>
-            {/*For name*/}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Name</Text>
-              <TextInput
-                style={styles.input}
-                onChangeText={value => {
-                  let error = validation.validateName(value.trim());
-                  setError(prevErr => {
-                    return {
-                      ...prevErr,
-                      nameError: error,
-                    };
-                  });
-                  setInputs(prevValues => {
-                    return {
-                      ...prevValues,
-                      name: value,
-                    };
-                  });
-                }}
-                placeholder="Enter name"
-                placeholderTextColor="#fff"
-                ref={nameRef}
-                returnKeyType="next"
-                onSubmitEditing={() =>
-                  emailRef.current && emailRef.current.focus()
-                }
-                blurOnSubmit={false}
-              />
-              <Text style={styles.error}>{error.nameError}</Text>
-            </View>
             {/*For email*/}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Email</Text>
@@ -155,11 +114,11 @@ function SignUp({navigation}) {
               />
               <Text style={styles.error}>{error.passwordError}</Text>
             </View>
-            <CustomBtn onPress={handleSignup} title={'Sign Up'} />
+            <CustomBtn onPress={handleSignin} title={'Sign In'} />
             <View style={styles.textConatiner}>
-              <Text style={styles.text}>Already have an account?</Text>
-              <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
-                <Text style={styles.text}>Sign In</Text>
+              <Text style={styles.text}>Don't have an account?</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+                <Text style={styles.text}>Sign Up</Text>
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
@@ -167,9 +126,9 @@ function SignUp({navigation}) {
       </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
-export default SignUp;
+export default SignIn;
 
 const styles = StyleSheet.create({
   safeArea: {
