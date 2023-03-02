@@ -1,4 +1,4 @@
-import React, {useState, createRef} from 'react';
+import React, {useState, createRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,12 @@ import {
 } from 'react-native';
 import CustomBtn from '../components/CustomBtn';
 import validation from '../components/Validation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignIn = ({navigation}) => {
   const [inputs, setInputs] = useState({
     email: null,
-    passowrd: null,
+    password: null,
   });
   const [error, setError] = useState({
     emailError: null,
@@ -26,12 +27,62 @@ const SignIn = ({navigation}) => {
   const emailRef = createRef();
   const passwordRef = createRef();
 
+  //For getting data from async storage
+  const getData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('UserData');
+      // return jsonValue != null ? JSON.parse(jsonValue) : null;
+      jsonValue != null ? JSON.parse(jsonValue) : null;
+      return jsonValue;
+    } catch (e) {
+      // error reading value
+      console.log('Error in async storge get method : ', e.message);
+    }
+  };
+
+  //For storing isLoggedIn in async storage
+  const storeData = async value => {
+    let valueStr = value.toString();
+    try {
+      await AsyncStorage.setItem('isLoggedIn', valueStr);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  //For removing UserData
+  removeValue = async () => {
+    try {
+      await AsyncStorage.removeItem('UserData');
+    } catch (e) {
+      // remove error
+      console.log('Error in async storge delete method : ', e.message);
+    }
+
+    console.log('Done from sign in.');
+  };
+
   const handleSignin = () => {
     let email = error.emailError === '' ? true : false;
     let password = error.passwordError === '' ? true : false;
 
     if (email && password) {
-      alert('Logged In successfully!');
+      getData().then(res => {
+        const userData = JSON.parse(res);
+        let userEmail = userData.emailValue;
+        let userPassword = userData.pswdValue;
+        if (inputs.email === userEmail && inputs.password === userPassword) {
+          storeData(true);
+          setInputs(prevValues => {
+            return {
+              ...prevValues,
+              email: null,
+              password: null,
+            };
+          });
+          navigation.navigate('Home');
+        }
+      });
     } else {
       setError(prevErr => {
         return {
@@ -59,6 +110,7 @@ const SignIn = ({navigation}) => {
               <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
+                value={inputs.email}
                 onChangeText={value => {
                   let error = validation.validateEmail(value.trim());
                   setError(prevErr => {
@@ -90,6 +142,7 @@ const SignIn = ({navigation}) => {
               <Text style={styles.label}>Password</Text>
               <TextInput
                 style={styles.input}
+                value={inputs.password}
                 onChangeText={value => {
                   let error = validation.validatePassword(value.trim());
                   setError(prevErr => {
@@ -109,6 +162,8 @@ const SignIn = ({navigation}) => {
                 placeholderTextColor="#fff"
                 ref={passwordRef}
                 returnKeyType="next"
+                secureTextEntry={true}
+                maxLength={6}
                 onSubmitEditing={Keyboard.dismiss}
                 blurOnSubmit={false}
               />

@@ -1,4 +1,4 @@
-import React, {useState, createRef} from 'react';
+import React, {useState, createRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,13 @@ import {
 } from 'react-native';
 import CustomBtn from '../components/CustomBtn';
 import validation from '../components/Validation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function SignUp({navigation}) {
   const [inputs, setInputs] = useState({
     name: null,
     email: null,
-    passowrd: null,
+    password: null,
   });
   const [error, setError] = useState({
     nameError: null,
@@ -29,13 +30,67 @@ function SignUp({navigation}) {
   const emailRef = createRef();
   const passwordRef = createRef();
 
+  useEffect(() => {
+    removeValue = async () => {
+      try {
+        await AsyncStorage.removeItem('UserData');
+      } catch (e) {
+        // remove error
+        console.log('Error in async storge delete method : ', e.message);
+      }
+
+      console.log('Done from sign up.');
+    };
+
+    removeLoginToken = async () => {
+      try {
+        await AsyncStorage.removeItem('isLoggedIn');
+      } catch (e) {
+        // remove error
+        console.log('Error in async storge delete method : ', e.message);
+      }
+
+      console.log('Done from sign up.');
+    };
+    removeValue();
+    removeLoginToken();
+  }, [navigation]);
+
+  //For storing data in async storage
+  const storeData = async value => {
+    if (value) {
+      try {
+        const jsonValue = JSON.stringify(value);
+        await AsyncStorage.setItem('UserData', jsonValue);
+      } catch (e) {
+        // saving error
+        console.log('Error in async storge set method : ', e.message);
+      }
+    }
+  };
+
   const handleSignup = () => {
     let name = error.nameError === '' ? true : false;
     let email = error.emailError === '' ? true : false;
     let password = error.passwordError === '' ? true : false;
 
+    let dataToPass = {
+      emailValue: inputs.email,
+      pswdValue: inputs.password,
+    };
+
     if (name && email && password) {
+      console.log('DATA TO PASS', dataToPass);
+      storeData(dataToPass);
       navigation.navigate('SignIn');
+      setInputs(prevValues => {
+        return {
+          ...prevValues,
+          name: null,
+          email: null,
+          password: null,
+        };
+      });
     } else {
       setError(prevErr => {
         return {
@@ -69,6 +124,7 @@ function SignUp({navigation}) {
               <Text style={styles.label}>Name</Text>
               <TextInput
                 style={styles.input}
+                value={inputs.name}
                 onChangeText={value => {
                   let error = validation.validateName(value.trim());
                   setError(prevErr => {
@@ -100,6 +156,7 @@ function SignUp({navigation}) {
               <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
+                value={inputs.email}
                 onChangeText={value => {
                   let error = validation.validateEmail(value.trim());
                   setError(prevErr => {
@@ -131,6 +188,7 @@ function SignUp({navigation}) {
               <Text style={styles.label}>Password</Text>
               <TextInput
                 style={styles.input}
+                value={inputs.password}
                 onChangeText={value => {
                   let error = validation.validatePassword(value.trim());
                   setError(prevErr => {
@@ -150,6 +208,8 @@ function SignUp({navigation}) {
                 placeholderTextColor="#fff"
                 ref={passwordRef}
                 returnKeyType="next"
+                secureTextEntry={true}
+                maxLength={6}
                 onSubmitEditing={Keyboard.dismiss}
                 blurOnSubmit={false}
               />
